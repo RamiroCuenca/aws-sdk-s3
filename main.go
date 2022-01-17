@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 
@@ -151,12 +151,45 @@ func getFile(filename string) {
 		fmt.Printf("Error: %s", err)
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
+
+	// If it doesn't exist, create a directory where to store the downloaded file
 	os.Mkdir(donwloadsPath, 0700)
-	err = ioutil.WriteFile(donwloadsPath+"/"+filename, body, 0644)
+
+	// Save or write the downloaded file into the desired directory
+	err = os.WriteFile(donwloadsPath+"/"+filename, body, 0644)
 	if err != nil {
-		panic(err)
+		if err != nil {
+			fmt.Println("Wasn't able to write the file at desired directory")
+			fmt.Printf("Error: %s", err)
+			return
+		}
 	}
+}
+
+// Deletes an existing file from a S3 bucket
+func deleteFile(filename string) (resp *s3.DeleteObjectOutput) {
+	fmt.Println("Deleting: ", filename)
+
+	params := &s3.DeleteObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	}
+
+	resp, err := S3session.DeleteObject(params)
+
+	if err != nil {
+		if err != nil {
+			if err != nil {
+				fmt.Println("Wasn't able to delete the file from the S3 bucket")
+				fmt.Printf("Error: %s", err)
+				return
+			}
+		}
+	}
+
+	return resp
 }
 
 func main() {
@@ -189,5 +222,8 @@ func main() {
 	// getFile("aws.jpg")
 	// getFile("golang.jpg")
 	// getFile("nextjs.jpg")
-	getFile("angular.jpg")
+	// getFile("angular.jpg")
+
+	// 6. deleteFile()
+	deleteFile("angular.jpg")
 }
