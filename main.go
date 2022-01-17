@@ -11,6 +11,7 @@ import (
 var (
 	// S3 session
 	S3session *s3.S3
+	AWSRegion string = "us-east-1"
 )
 
 func init() {
@@ -28,7 +29,8 @@ func init() {
 	// aws.String()
 	// Returns a pointer to the string value passed in
 	S3session = s3.New(session.Must(session.NewSession(&aws.Config{
-		Region: aws.String("us-east-1"),
+		Region: aws.String(AWSRegion),
+		// Credentials: ,
 	})))
 }
 
@@ -58,10 +60,36 @@ func listBuckets() (resp *s3.ListBucketsOutput) {
 	return
 }
 
-func main() {
-	buckets := listBuckets()
-	if buckets != nil {
-		fmt.Println()
+// Create a new bucket at AWS S3
+func createBucket() (resp *s3.CreateBucketOutput) {
+	const bucketName = "ramiro-test-bucket"
+
+	bucketParams := &s3.CreateBucketInput{
+		Bucket: aws.String(bucketName),
+		// ACL: aws.String(s3.BucketCannedACLPublicRead),
+		ACL: aws.String(s3.BucketCannedACLPrivate),
+		// CreateBucketConfiguration: &s3.CreateBucketConfiguration{
+		// 	// LocationConstraint: aws.String(AWSRegion),
+		// 	// If we do not specify it, it will create it at Virginia (us-east-1)
+		// },
 	}
 
+	resp, err := S3session.CreateBucket(bucketParams)
+	if err != nil {
+		fmt.Printf("Wasn't able to create '%s' bucket at S3, the reason might be that there already exist a bucket with provided name\n", bucketName)
+		fmt.Printf("Error: %s", err)
+		return
+	}
+
+	return
+}
+
+func main() {
+	fmt.Println("-- listBuckets Function")
+	buckets := listBuckets()
+	if buckets != nil {
+		fmt.Println(buckets)
+	}
+	fmt.Println("-- createBucket Function")
+	fmt.Println(createBucket())
 }
