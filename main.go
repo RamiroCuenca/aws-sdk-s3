@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -117,6 +116,23 @@ func uploadFile(filename string) (resp *s3.PutObjectOutput) {
 	return
 }
 
+// Get or fetch all files from bucket
+func listFiles() (resp *s3.ListObjectsV2Output) {
+	params := &s3.ListObjectsV2Input{
+		Bucket: aws.String(bucketName),
+	}
+
+	resp, err := S3session.ListObjectsV2(params)
+
+	if err != nil {
+		fmt.Println("Wasn't able to fetch any file from the S3 bucket")
+		fmt.Printf("Error: %s", err)
+		return
+	}
+
+	return resp
+}
+
 func main() {
 	// 1. listBuckets()
 	// buckets := listBuckets()
@@ -128,16 +144,18 @@ func main() {
 	// fmt.Println(createBucket())
 
 	// 3. uploadFile()
-	folder := "images"
+	// folder := "images"
 
-	files, _ := ioutil.ReadDir(folder)
-	fmt.Println(files)
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		} else {
-			uploadFile(folder + "/" + file.Name())
-		}
-	}
+	// files, _ := ioutil.ReadDir(folder)
+	// fmt.Println(files)
+	// for _, file := range files {
+	// 	if file.IsDir() {
+	// 		continue
+	// 	} else {
+	// 		uploadFile(folder + "/" + file.Name())
+	// 	}
+	// }
 
+	// 4. listFiles()
+	fmt.Println(listFiles())
 }
