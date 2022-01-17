@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
@@ -12,8 +13,9 @@ import (
 
 var (
 	// S3 session
-	S3session *s3.S3
-	AWSRegion string = "us-east-1"
+	S3session     *s3.S3
+	AWSRegion     string = "us-east-1"
+	donwloadsPath string = "downloads"
 )
 
 const bucketName = "ramiro-test-bucket"
@@ -133,6 +135,30 @@ func listFiles() (resp *s3.ListObjectsV2Output) {
 	return resp
 }
 
+// Download a file from S3
+func getFile(filename string) {
+	fmt.Println("Downloading: ", filename)
+
+	params := &s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(filename),
+	}
+
+	resp, err := S3session.GetObject(params)
+
+	if err != nil {
+		fmt.Println("Wasn't able to fetch the file from the S3 bucket")
+		fmt.Printf("Error: %s", err)
+		return
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	os.Mkdir(donwloadsPath, 0700)
+	err = ioutil.WriteFile(donwloadsPath+"/"+filename, body, 0644)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	// 1. listBuckets()
 	// buckets := listBuckets()
@@ -157,5 +183,11 @@ func main() {
 	// }
 
 	// 4. listFiles()
-	fmt.Println(listFiles())
+	// fmt.Println(listFiles())
+
+	// 5. getFile()
+	// getFile("aws.jpg")
+	// getFile("golang.jpg")
+	// getFile("nextjs.jpg")
+	getFile("angular.jpg")
 }
