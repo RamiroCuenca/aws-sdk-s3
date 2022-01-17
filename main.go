@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -13,6 +16,8 @@ var (
 	S3session *s3.S3
 	AWSRegion string = "us-east-1"
 )
+
+const bucketName = "ramiro-test-bucket"
 
 func init() {
 	// Initialize S3 session
@@ -49,8 +54,10 @@ func init() {
 }
 */
 func listBuckets() (resp *s3.ListBucketsOutput) {
+	params := &s3.ListBucketsInput{}
+
 	// S3session.ListBuckets() Returns a list of all buckets owned by the authenticated sender of the request
-	resp, err := S3session.ListBuckets(&s3.ListBucketsInput{}) // Leave it empty so that it retrieve all
+	resp, err := S3session.ListBuckets(params) // Leave it empty so that it retrieve all
 	if err != nil {
 		fmt.Println("Wasn't able to find any bucket at S3")
 		fmt.Printf("Error: %s", err)
@@ -62,9 +69,7 @@ func listBuckets() (resp *s3.ListBucketsOutput) {
 
 // Create a new bucket at AWS S3
 func createBucket() (resp *s3.CreateBucketOutput) {
-	const bucketName = "ramiro-test-bucket"
-
-	bucketParams := &s3.CreateBucketInput{
+	params := &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 		// ACL: aws.String(s3.BucketCannedACLPublicRead),
 		ACL: aws.String(s3.BucketCannedACLPrivate),
@@ -74,7 +79,7 @@ func createBucket() (resp *s3.CreateBucketOutput) {
 		// },
 	}
 
-	resp, err := S3session.CreateBucket(bucketParams)
+	resp, err := S3session.CreateBucket(params)
 	if err != nil {
 		fmt.Printf("Wasn't able to create '%s' bucket at S3, the reason might be that there already exist a bucket with provided name\n", bucketName)
 		fmt.Printf("Error: %s", err)
@@ -84,12 +89,55 @@ func createBucket() (resp *s3.CreateBucketOutput) {
 	return
 }
 
-func main() {
-	fmt.Println("-- listBuckets Function")
-	buckets := listBuckets()
-	if buckets != nil {
-		fmt.Println(buckets)
+// Upload a file to AWS S3 bucket
+func uploadFile(filename string) (resp *s3.PutObjectOutput) {
+	f, err := os.Open(filename)
+	if err != nil {
+		fmt.Printf("Wasn't able to open/read '%s' file\n", filename)
+		fmt.Printf("Error: %s", err)
+		return
 	}
-	fmt.Println("-- createBucket Function")
-	fmt.Println(createBucket())
+
+	params := &s3.PutObjectInput{
+		Body:   f,
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(strings.Split(filename, "/")[1]),
+		ACL:    aws.String(s3.BucketCannedACLPublicRead),
+	}
+
+	fmt.Println("Uploading:", filename)
+	resp, err = S3session.PutObject(params)
+
+	if err != nil {
+		fmt.Printf("Wasn't able to upload '%s' file to the S3 bucket\n", filename)
+		fmt.Printf("Error: %s", err)
+		return
+	}
+
+	return
+}
+
+func main() {
+	// 1. listBuckets()
+	// buckets := listBuckets()
+	// if buckets != nil {
+	// 	fmt.Println(buckets)
+	// }
+
+	// 2. createBucket()
+	// fmt.Println(createBucket())
+
+	// 3. uploadFile()
+	folder := "images"
+
+	files, _ := ioutil.ReadDir(folder)
+	fmt.Println(files)
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		} else {
+			uploadFile(folder + "/" + file.Name())
+		}
+	}
+
 }
