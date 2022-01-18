@@ -46,14 +46,22 @@ func fileCreate(filename string) (resp *s3.PutObjectOutput) {
 	}
 
 	// Write the file
-	data := []byte(`upstream config {
-	sv1 = 10.10.0.1/21,
-	sv2 = 10.10.0.2/21,
-	sv3 = 10.10.0.3/21,
-	sv4 = 10.10.0.4/21,
-}
+	data := []byte(`http {
+	upstream ourproject {
+		server 127.0.0.1:8000;
+		server 127.0.0.1:8001;
+		server 127.0.0.1:8002;
+		server 127.0.0.1:8003;
+	}
 
-nginx.Run()
+	server {
+		listen 80;
+		server_name www.domain.com;
+		location / {
+			proxy_pass http://ourproject;
+		}
+	}
+}
 	`)
 
 	os.WriteFile(filename, data, 0644)

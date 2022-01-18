@@ -1,0 +1,56 @@
+http {
+			upstream ourproject {
+				server 127.0.0.1:8000;
+				server 127.0.0.1:8001;
+				server 127.0.0.1:8002;
+				server 127.0.0.1:8003;
+			}
+		
+			server {
+				listen 80;
+				server_name www.domain.com;
+				location / {
+					proxy_pass http://ourproject;
+				}
+			}
+		}
+
+		VPCe: {
+  VpcEndpoints: [{
+      CreationTimestamp: 2022-01-17 22:51:45.261 +0000 UTC,
+      DnsEntries: [
+        {
+          DnsName: "vpce-06eb06f7f3f681ae6-pw691sr4.execute-api.us-east-1.vpce.amazonaws.com",
+          HostedZoneId: "Z7HUB22UULQXV"
+        },
+        {
+          DnsName: "vpce-06eb06f7f3f681ae6-pw691sr4-us-east-1f.execute-api.us-east-1.vpce.amazonaws.com",
+          HostedZoneId: "Z7HUB22UULQXV"
+        },
+        {
+          DnsName: "execute-api.us-east-1.amazonaws.com",
+          HostedZoneId: "Z042342719YXBW0DBJ8E6"
+        },
+        {
+          DnsName: "*.execute-api.us-east-1.amazonaws.com",
+          HostedZoneId: "Z042342719YXBW0DBJ8E6"
+        }
+      ],
+      Groups: [{
+          GroupId: "sg-0680d3739905bba5f",
+          GroupName: "default"
+        }],
+      NetworkInterfaceIds: ["eni-03fb9258f8f068bf5"],
+      OwnerId: "730269305302",
+      PolicyDocument: "{\n  \"Statement\": [\n    {\n      \"Action\": \"*\", \n      \"Effect\": \"Allow\", \n      \"Principal\": \"*\", \n      \"Resource\": \"*\"\n    }\n  ]\n}",
+      PrivateDnsEnabled: true,
+      RequesterManaged: false,
+      ServiceName: "com.amazonaws.us-east-1.execute-api",
+      State: "available",
+      SubnetIds: ["subnet-0d5000b7265b7b22b"],
+      VpcEndpointId: "vpce-06eb06f7f3f681ae6",
+      VpcEndpointType: "Interface",
+      VpcId: "vpc-0e077c6e7930992df"
+    }]
+}
+	

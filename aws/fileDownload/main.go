@@ -17,7 +17,8 @@ var (
 	donwloadsPath string = "script"
 )
 
-const bucketName = "ramiro-test-bucket"
+// const bucketName = "ramiro-test-bucket"
+const bucketName = "rsalinas-nginx-upstream"
 
 func init() {
 	// Initialize S3 session
